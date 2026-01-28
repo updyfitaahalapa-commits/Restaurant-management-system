@@ -23,6 +23,25 @@
                     </a>
                 </li>
                 
+                <li class="nav-item">
+                    <a class="nav-link text-dark fw-bold me-3 position-relative" href="view_cart.php">
+                        <i class="fas fa-shopping-cart me-1"></i> CART
+                        <?php 
+                        $cart_count = 0;
+                        if(isset($_SESSION['cart'])){
+                            foreach($_SESSION['cart'] as $item){
+                                $cart_count += $item['qty'];
+                            }
+                        }
+                        if($cart_count > 0){
+                        ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <?= $cart_count; ?>
+                        </span>
+                        <?php } ?>
+                    </a>
+                </li>
+                
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle btn btn-light rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i> <?= $_SESSION['user']; ?>

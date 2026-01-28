@@ -24,7 +24,7 @@ $completed_q = mysqli_query($conn, "SELECT COUNT(*) as count FROM orders WHERE s
 $completed_count = mysqli_fetch_assoc($completed_q)['count'];
 
 // Recent Orders
-$orders = mysqli_query($conn, "SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o.item = m.name ORDER BY o.order_date DESC");
+$orders = mysqli_query($conn, "SELECT * FROM orders ORDER BY order_date DESC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -131,7 +131,7 @@ $orders = mysqli_query($conn, "SELECT o.*, m.image FROM orders o LEFT JOIN menu 
                                     <td><?= $r['customer']; ?></td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="../<?= $r['image']; ?>" width="40" height="40" class="rounded me-2">
+                                            <i class="fas fa-shopping-bag text-muted me-2"></i>
                                             <?= $r['item']; ?> <span class="badge bg-light text-dark ms-2">x<?= $r['quantity']; ?></span>
                                         </div>
                                     </td>

@@ -23,6 +23,9 @@ if (!isset($_SESSION['user']) || $_SESSION['role'] != "customer") {
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- Premium CSS -->
     <link href="../assets/style.css" rel="stylesheet">
     
@@ -56,3 +59,23 @@ if (!isset($_SESSION['user']) || $_SESSION['role'] != "customer") {
     </style>
 </head>
 <body>
+
+<?php if(isset($_SESSION['msg'])){ 
+    $msg = $_SESSION['msg'];
+    $msg_type = isset($_SESSION['msg_type']) ? $_SESSION['msg_type'] : 'success'; // Default to success
+    unset($_SESSION['msg']);
+    unset($_SESSION['msg_type']);
+?>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            icon: '<?= $msg_type; ?>',
+            title: '<?= ucfirst($msg_type); ?>!',
+            text: '<?= $msg; ?>',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+    });
+</script>
+<?php } ?>

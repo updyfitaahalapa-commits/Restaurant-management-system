@@ -4,17 +4,10 @@ include("includes/navbar.php");
 
 $user = $_SESSION['user'];
 
-// Handle Add to cart / place order
-if(isset($_POST['order'])){
-    $item = $_POST['item'];
-    $price = $_POST['price'];
-    $qty = $_POST['qty'];
-    $total = $price * $qty;
-
-    // Save in DB
-    mysqli_query($conn,"INSERT INTO orders (customer,item,quantity,total,status) VALUES ('$user','$item','$qty','$total','Pending')");
-    $_SESSION['msg'] = "Order placed successfully!";
-    echo "<script>window.location.href='index.php';</script>";
+// Cart feedback handled via session msg in view_cart.php or redirects
+// session_start() is inside header.php usually, but let's Ensure
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 // Fetch all menu items
@@ -31,12 +24,6 @@ $menu_q = mysqli_query($conn,"SELECT * FROM menu");
 
 <div class="container mt-5">
 
-    <?php if(isset($_SESSION['msg'])){ ?>
-        <div class="alert alert-success shadow-sm rounded-3 border-0 mb-4">
-            <i class="fas fa-check-circle me-2"></i> <?=$_SESSION['msg'];?>
-            <?php unset($_SESSION['msg']); ?>
-        </div>
-    <?php } ?>
     
     <div class="row g-4 mb-5">
         <?php while($row = mysqli_fetch_assoc($menu_q)){ ?>
@@ -49,8 +36,8 @@ $menu_q = mysqli_query($conn,"SELECT * FROM menu");
                     <h5 class="card-title fw-bold mb-1"><?= $row['name']; ?></h5>
                     <p class="card-text text-danger fw-bold fs-5 mb-3">$<?= $row['price']; ?></p>
                     
-                    <form method="POST" class="mt-auto">
-                        <input type="hidden" name="item" value="<?= $row['name']; ?>">
+                    <form action="cart.php" method="POST" class="mt-auto">
+                        <input type="hidden" name="item_name" value="<?= $row['name']; ?>">
                         <input type="hidden" name="price" value="<?= $row['price']; ?>">
                         
                         <div class="input-group mb-3">
@@ -58,8 +45,8 @@ $menu_q = mysqli_query($conn,"SELECT * FROM menu");
                             <input type="number" name="qty" value="1" min="1" max="10" class="form-control text-center border-start-0 ps-0">
                         </div>
                         
-                        <button class="btn btn-warning w-100 fw-bold text-dark rounded-pill" name="order">
-                            <i class="fas fa-cart-plus me-2"></i> Order Now
+                        <button class="btn btn-warning w-100 fw-bold text-dark rounded-pill" name="add_to_cart">
+                            <i class="fas fa-cart-plus me-2"></i> Add to Cart
                         </button>
                     </form>
                 </div>

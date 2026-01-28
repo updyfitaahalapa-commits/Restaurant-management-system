@@ -3,7 +3,7 @@ include("includes/header.php");
 include("includes/navbar.php");
 
 $customer = $_SESSION['user'];
-$q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o.item = m.name WHERE o.customer='$customer' ORDER BY o.order_date DESC");
+$q = mysqli_query($conn,"SELECT * FROM orders WHERE customer='$customer' ORDER BY order_date DESC");
 ?>
 
 <div class="container mt-5 mb-5">
@@ -20,28 +20,25 @@ $q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="py-3 ps-4">ITEM DETAILS</th>
-                            <th class="py-3">QUANTITY</th>
+                            <th class="py-3 ps-4">ORDER ID</th>
+                            <th class="py-3">SUMMARY</th>
                             <th class="py-3">TOTAL</th>
                             <th class="py-3">STATUS</th>
                             <th class="py-3">DATE</th>
+                            <th class="py-3">ACTION</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if(mysqli_num_rows($q)==0){ ?>
-                            <tr><td colspan="5" class="text-center py-5 text-muted">You haven't placed any orders yet.</td></tr>
+                            <tr><td colspan="6" class="text-center py-5 text-muted">You haven't placed any orders yet.</td></tr>
                         <?php } else {
                         while($row = mysqli_fetch_assoc($q)){ ?>
                         <tr>
-                            <td class="ps-4 py-3">
-                                <div class="d-flex align-items-center">
-                                    <img src="../<?= $row['image'] ?? 'assets/images/no-image.png'; ?>" 
-                                         style="width:60px; height:60px; object-fit:cover; border-radius:10px; margin-right:15px;" 
-                                         alt="Food">
-                                    <span class="fw-bold text-dark"><?= $row['item']; ?></span>
-                                </div>
+                            <td class="ps-4 fw-bold">#<?= $row['id']; ?></td>
+                            <td class="text-muted">
+                                <span class="fw-bold text-dark"><?= $row['item']; ?></span>
+                                <br><small><?= $row['quantity']; ?> Items</small>
                             </td>
-                            <td class="fw-bold text-muted ps-4"><?= $row['quantity']; ?></td>
                             <td class="fw-bold text-primary">$<?= number_format($row['total'], 2); ?></td>
                             <td>
                                 <?php if($row['status']=="Pending"){ ?>
@@ -51,6 +48,11 @@ $q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o
                                 <?php } ?>
                             </td>
                             <td class="text-muted small"><?= date('M d, Y', strtotime($row['order_date'])); ?></td>
+                            <td>
+                                <a href="view_order.php?id=<?= $row['id']; ?>" class="btn btn-sm btn-outline-primary rounded-pill">
+                                    View Details
+                                </a>
+                            </td>
                         </tr>
                         <?php } } ?>
                     </tbody>

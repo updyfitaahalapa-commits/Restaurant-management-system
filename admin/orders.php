@@ -10,7 +10,7 @@ if(isset($_GET['id'])){
     echo "<script>window.location.href='orders.php';</script>";
 }
 
-$q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o.item = m.name ORDER BY order_date DESC");
+$q = mysqli_query($conn,"SELECT * FROM orders ORDER BY order_date DESC");
 ?>
 
 <div class="row">
@@ -26,6 +26,7 @@ $q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o
                             <th>Customer</th>
                             <th>Item Details</th>
                             <th>Total</th>
+                            <th>Payment</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -47,16 +48,20 @@ $q = mysqli_query($conn,"SELECT o.*, m.image FROM orders o LEFT JOIN menu m ON o
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="../<?= $row['image'] ?? 'assets/images/no-image.png'; ?>" 
-                                         style="width:50px; height:50px; object-fit:cover; border-radius:8px; margin-right:15px;" 
-                                         alt="Food">
+                                    <div style="width:40px; height:40px; background:#f8f9fa; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-right:15px;">
+                                        <i class="fas fa-box text-secondary"></i>
+                                    </div>
                                     <div>
-                                        <h6 class="mb-0 fw-bold"><?= $row['item']; ?></h6>
-                                        <small class="text-muted">Qty: <?= $row['quantity']; ?></small>
+                                        <h6 class="mb-0 fw-bold text-dark"><?= $row['item']; ?></h6>
+                                        <small class="text-muted">Total Items: <?= $row['quantity']; ?></small>
                                     </div>
                                 </div>
                             </td>
                             <td class="fw-bold fs-6 text-primary">$<?= number_format($row['total'], 2); ?></td>
+                            <td>
+                                <span class="badge bg-light text-dark border"><?= $row['payment_status']; ?></span>
+                                <br><small class="text-muted"><?= $row['payment_method']; ?></small>
+                            </td>
                             <td>
                                 <?php if($row['status']=="Pending"){ ?>
                                     <span class="badge bg-light-warning">Pending</span>
