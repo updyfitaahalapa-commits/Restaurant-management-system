@@ -24,6 +24,7 @@ $q = mysqli_query($conn,"SELECT * FROM orders WHERE customer='$customer' ORDER B
                             <th class="py-3">SUMMARY</th>
                             <th class="py-3">TOTAL</th>
                             <th class="py-3">STATUS</th>
+                            <th class="py-3">PAYMENT</th>
                             <th class="py-3">DATE</th>
                             <th class="py-3">ACTION</th>
                         </tr>
@@ -45,6 +46,15 @@ $q = mysqli_query($conn,"SELECT * FROM orders WHERE customer='$customer' ORDER B
                                     <span class="badge bg-warning text-dark rounded-pill px-3">Pending</span>
                                 <?php } else { ?>
                                     <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                <?php } ?>
+                            </td>
+                            <td>
+                                <?php 
+                                $pstatus = $row['payment_status'] ?? 'Pending';
+                                if($pstatus=="Paid"){ ?>
+                                    <span class="badge bg-light-success text-success fw-bold">Paid</span>
+                                <?php } else { ?>
+                                    <span class="badge bg-light-danger text-danger fw-bold">Unpaid</span>
                                 <?php } ?>
                             </td>
                             <td class="text-muted small"><?= date('M d, Y', strtotime($row['order_date'])); ?></td>

@@ -13,7 +13,7 @@ if(!$sales) $sales = 0;
 
 <div class="row g-4 mb-4">
     <!-- Stat Card 1 -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -32,7 +32,7 @@ if(!$sales) $sales = 0;
     </div>
 
     <!-- Stat Card 2 -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -51,7 +51,7 @@ if(!$sales) $sales = 0;
     </div>
 
     <!-- Stat Card 3 -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -61,6 +61,26 @@ if(!$sales) $sales = 0;
                 </div>
                 <div class="stat-icon text-info">
                     <i class="fas fa-utensils"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Stat Card 4 (Low Stock) -->
+    <div class="col-md-3">
+        <?php 
+        $low_stock = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM inventory WHERE quantity < 5"));
+        ?>
+        <div class="stat-card">
+             <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted text-uppercase fw-bold mb-1">Low Stock</h6>
+                    <h3 class="text-danger"><?= $low_stock; ?></h3>
+                    <small class="text-muted">items need alert</small>
+                </div>
+                <div class="stat-icon text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
             </div>
         </div>

@@ -3,101 +3,134 @@ include("includes/header.php");
 include("includes/sidebar.php");
 include("includes/topbar.php");
 
-// Total Sales
-$sales_q = mysqli_query($conn,"SELECT SUM(total) AS total_sales FROM orders WHERE status='Completed'");
-$sales = mysqli_fetch_assoc($sales_q)['total_sales'] ?? 0;
+// 1. Sales Data
+$today = date('Y-m-d');
+$sales_today_q = mysqli_query($conn, "SELECT SUM(total) as val FROM orders WHERE status='Completed' AND DATE(order_date)='$today'");
+$sales_today = mysqli_fetch_assoc($sales_today_q)['val'] ?? 0;
 
-// Chart Data
-$chart_q = mysqli_query($conn,"SELECT DATE(order_date) as order_day,SUM(total) AS total FROM orders WHERE status='Completed' GROUP BY order_day ORDER BY order_day ASC");
-$chart_labels=[];$chart_data=[];
-while($row=mysqli_fetch_assoc($chart_q)){
-    $chart_labels []= date('M d', strtotime($row['order_day']));
-    $chart_data []= $row['total'];
-}
+$sales_month_q = mysqli_query($conn, "SELECT SUM(total) as val FROM orders WHERE status='Completed' AND MONTH(order_date)=MONTH(CURRENT_DATE()) AND YEAR(order_date)=YEAR(CURRENT_DATE())");
+$sales_month = mysqli_fetch_assoc($sales_month_q)['val'] ?? 0;
+
+$sales_all_q = mysqli_query($conn, "SELECT SUM(total) as val FROM orders WHERE status='Completed'");
+$sales_all = mysqli_fetch_assoc($sales_all_q)['val'] ?? 0;
+
+// 2. Inventory Usage (Top Selling)
+$top_q = mysqli_query($conn, "SELECT item_name, SUM(quantity) as sold FROM order_items GROUP BY item_name ORDER BY sold DESC LIMIT 5");
+
+// 3. Low Stock Items
+$low_stock_q = mysqli_query($conn, "SELECT m.name, i.quantity FROM menu m JOIN inventory i ON m.id = i.menu_id WHERE i.quantity < 5");
+
 ?>
 
-<div class="row">
-    <!-- Sales Card -->
-    <div class="col-md-4 mb-4">
-        <div class="stat-card" style="background: linear-gradient(135deg, #1e1e2d 0%, #2c2c40 100%); color:white;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-white-50 text-uppercase fw-bold mb-1">Total Earnings</h6>
-                    <h3 class="text-white mb-0">$<?= number_format($sales, 2); ?></h3>
-                    <small class="text-success"><i class="fas fa-arrow-up"></i> All time revenue</small>
-                </div>
-                <div class="stat-icon" style="opacity:0.2;">
-                    <i class="fas fa-wallet text-white"></i>
-                </div>
-            </div>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card bg-primary text-white">
+            <h6 class="text-white-50">Sales Today</h6>
+            <h3>$<?= number_format($sales_today, 2); ?></h3>
         </div>
-        
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-body p-4 text-center">
-                <i class="fas fa-file-download text-primary fs-1 mb-3"></i>
-                <h5 class="fw-bold">Export Data</h5>
-                <p class="text-muted small">Download sales reports as CSV or PDF.</p>
-                <button class="btn btn-outline-primary btn-sm rounded-pill px-4">Download CSV</button>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-success text-white">
+            <h6 class="text-white-50">Sales This Month</h6>
+            <h3>$<?= number_format($sales_month, 2); ?></h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card bg-dark text-white">
+            <h6 class="text-white-50">Total Sales</h6>
+            <h3>$<?= number_format($sales_all, 2); ?></h3>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Top Selling Items -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Inventory Usage (Top Selling)</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Qty Sold</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while($row = mysqli_fetch_assoc($top_q)) { ?>
+                        <tr>
+                            <td><?= $row['item_name']; ?></td>
+                            <td class="fw-bold text-primary"><?= $row['sold']; ?></td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Chart -->
-    <div class="col-md-8 mb-4">
+    <!-- Low Stock -->
+    <div class="col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 py-3">
-                <h5 class="fw-bold mb-0">Sales Analytics</h5>
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0 text-danger">Low Stock Alerts</h5>
             </div>
             <div class="card-body">
-                <canvas id="salesChart" style="max-height: 400px;"></canvas>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Stock Left</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while($row = mysqli_fetch_assoc($low_stock_q)) { ?>
+                        <tr>
+                            <td><?= $row['name']; ?></td>
+                            <td class="fw-bold text-danger"><?= $row['quantity']; ?></td>
+                        </tr>
+                        <?php } ?>
+                        <?php if(mysqli_num_rows($low_stock_q)==0){ echo "<tr><td colspan='2'>No low stock items.</td></tr>"; } ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+             <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Monthly Sales Breakdown</h5>
+            </div>
+            <div class="card-body">
+                 <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Orders Count</th>
+                            <th>Total Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $month_breakdown = mysqli_query($conn, "SELECT DATE(order_date) as d, COUNT(*) as c, SUM(total) as t FROM orders WHERE status='Completed' AND MONTH(order_date)=MONTH(CURRENT_DATE()) GROUP BY d ORDER BY d DESC");
+                        while($row=mysqli_fetch_assoc($month_breakdown)){
+                        ?>
+                        <tr>
+                            <td><?= $row['d']; ?></td>
+                            <td><?= $row['c']; ?></td>
+                            <td>$<?= number_format($row['t'], 2); ?></td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                 </table>
             </div>
         </div>
     </div>
 </div>
 
 <?php include("includes/footer.php"); ?>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const ctx = document.getElementById('salesChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?= json_encode($chart_labels); ?>,
-        datasets: [{
-            label: 'Daily Sales ($)',
-            data: <?= json_encode($chart_data); ?>,
-            borderColor: '#D32F2F',
-            backgroundColor: 'rgba(211, 47, 47, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#D32F2F',
-            pointRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    borderDash: [5, 5]
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                }
-            }
-        }
-    }
-});
-</script>

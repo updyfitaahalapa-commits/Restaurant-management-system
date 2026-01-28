@@ -22,6 +22,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <i class="fas fa-shopping-bag"></i> Orders
             </a>
         </li>
+
+        <li class="<?= ($current_page == 'inventory.php') ? 'active' : ''; ?>">
+            <a href="inventory.php">
+                <i class="fas fa-boxes"></i> Inventory
+            </a>
+        </li>
+
+        <li class="<?= ($current_page == 'payments.php') ? 'active' : ''; ?>">
+            <a href="payments.php">
+                <i class="fas fa-money-bill-wave"></i> Payments
+            </a>
+        </li>
         
         <li class="<?= ($current_page == 'add_menu.php' || $current_page == 'view_menu.php') ? 'active' : ''; ?>">
             <a href="#menuSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
