@@ -3,23 +3,12 @@ include("includes/header.php");
 include("includes/sidebar.php");
 include("includes/topbar.php");
 
-// Update Stock Logic
-if(isset($_POST['update_stock'])){
-    $id = $_POST['id'];
-    $qty = $_POST['quantity'];
-    
-    // Check if entry exists
-    $check = mysqli_query($conn, "SELECT * FROM inventory WHERE menu_id='$id'");
-    if(mysqli_num_rows($check) > 0){
-        mysqli_query($conn, "UPDATE inventory SET quantity='$qty' WHERE menu_id='$id'");
-    } else {
-        mysqli_query($conn, "INSERT INTO inventory (menu_id, quantity) VALUES ('$id', '$qty')");
-    }
+// Handle Delete
+if(isset($_GET['delete'])){
+    $id = $_GET['delete'];
+    mysqli_query($conn, "DELETE FROM inventory WHERE id='$id'");
     echo "<script>window.location.href='inventory.php';</script>";
 }
-
-// Get menu items with inventory
-$q = mysqli_query($conn, "SELECT m.*, i.quantity FROM menu m LEFT JOIN inventory i ON m.id = i.menu_id");
 ?>
 
 <div class="row">
@@ -27,44 +16,55 @@ $q = mysqli_query($conn, "SELECT m.*, i.quantity FROM menu m LEFT JOIN inventory
         <div class="table-card">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="fw-bold mb-0">Inventory Management</h4>
+                <a href="manage_inventory.php" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> Add Item
+                </a>
             </div>
 
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th>Image</th>
+                            <th>ID</th>
                             <th>Item Name</th>
-                            <th>Current Stock</th>
-                            <th>Update Stock</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while($row=mysqli_fetch_assoc($q)){ 
-                            $stock = $row['quantity'] ? $row['quantity'] : 0;
+                        <?php 
+                        $q = mysqli_query($conn, "SELECT * FROM inventory ORDER BY id DESC");
+                        while($row=mysqli_fetch_assoc($q)){ 
+                            $stock = $row['quantity'];
+                            $min = $row['min_threshold'];
                         ?>
                         <tr>
+                            <td>#<?= $row['id']; ?></td>
+                            <td class="fw-bold"><?= $row['item_name']; ?></td>
                             <td>
-                                <img src="../<?= $row['image']; ?>" 
-                                     style="width:50px; height:50px; object-fit:cover; border-radius:10px;" 
-                                     alt="Food">
+                                <span class="fw-bold fs-5"><?= $stock; ?></span>
                             </td>
-                            <td><span class="fw-bold"><?= $row['name']; ?></span></td>
+                            <td><?= $row['unit']; ?></td>
                             <td>
-                                <?php if($stock < 5) { ?>
-                                    <span class="badge bg-light-danger text-danger">Low: <?= $stock; ?></span>
+                                <?php if($stock <= $min) { ?>
+                                    <span class="badge bg-light-danger text-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i> Low Stock
+                                    </span>
                                 <?php } else { ?>
-                                    <span class="badge bg-light-success text-success"><?= $stock; ?></span>
+                                    <span class="badge bg-light-success text-success">In Stock</span>
                                 <?php } ?>
                             </td>
+                            <td><?= date('Y-m-d H:i', strtotime($row['last_updated'])); ?></td>
                             <td>
-                                <form method="POST" class="d-flex align-items-center" style="max-width:200px;">
-                                    <input type="hidden" name="id" value="<?= $row['id']; ?>">
-                                    <input type="number" name="quantity" class="form-control form-control-sm me-2" value="<?= $stock; ?>" min="0" required>
-                                    <button class="btn btn-sm btn-primary" name="update_stock">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                </form>
+                                <a href="manage_inventory.php?edit=<?= $row['id']; ?>" class="btn btn-sm btn-icon btn-light text-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="inventory.php?delete=<?= $row['id']; ?>" class="btn btn-sm btn-icon btn-light text-danger" onclick="return confirm('Are you sure? This might affect orders!')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
                             </td>
                         </tr>
                         <?php } ?>

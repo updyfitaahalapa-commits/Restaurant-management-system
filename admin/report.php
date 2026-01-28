@@ -14,11 +14,11 @@ $sales_month = mysqli_fetch_assoc($sales_month_q)['val'] ?? 0;
 $sales_all_q = mysqli_query($conn, "SELECT SUM(total) as val FROM orders WHERE status='Completed'");
 $sales_all = mysqli_fetch_assoc($sales_all_q)['val'] ?? 0;
 
-// 2. Inventory Usage (Top Selling)
+// 2. Inventory Usage (Top Selling based on order_items)
 $top_q = mysqli_query($conn, "SELECT item_name, SUM(quantity) as sold FROM order_items GROUP BY item_name ORDER BY sold DESC LIMIT 5");
 
-// 3. Low Stock Items
-$low_stock_q = mysqli_query($conn, "SELECT m.name, i.quantity FROM menu m JOIN inventory i ON m.id = i.menu_id WHERE i.quantity < 5");
+// 3. Low Stock Items (Fixed Schema)
+$low_stock_q = mysqli_query($conn, "SELECT item_name, quantity, min_threshold FROM inventory WHERE quantity <= min_threshold");
 
 ?>
 
@@ -48,7 +48,7 @@ $low_stock_q = mysqli_query($conn, "SELECT m.name, i.quantity FROM menu m JOIN i
     <div class="col-md-6 mb-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0">Inventory Usage (Top Selling)</h5>
+                <h5 class="fw-bold mb-0">Top Selling Items</h5>
             </div>
             <div class="card-body">
                 <table class="table table-hover">
@@ -83,16 +83,18 @@ $low_stock_q = mysqli_query($conn, "SELECT m.name, i.quantity FROM menu m JOIN i
                         <tr>
                             <th>Item Name</th>
                             <th>Stock Left</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php while($row = mysqli_fetch_assoc($low_stock_q)) { ?>
                         <tr>
-                            <td><?= $row['name']; ?></td>
+                            <td><?= $row['item_name']; ?></td>
                             <td class="fw-bold text-danger"><?= $row['quantity']; ?></td>
+                            <td><span class="badge bg-light-danger text-danger">Low (Min: <?=$row['min_threshold']?>)</span></td>
                         </tr>
                         <?php } ?>
-                        <?php if(mysqli_num_rows($low_stock_q)==0){ echo "<tr><td colspan='2'>No low stock items.</td></tr>"; } ?>
+                        <?php if(mysqli_num_rows($low_stock_q)==0){ echo "<tr><td colspan='3'>No low stock items.</td></tr>"; } ?>
                     </tbody>
                 </table>
             </div>

@@ -70,7 +70,8 @@ if(!$sales) $sales = 0;
     <!-- Stat Card 4 (Low Stock) -->
     <div class="col-md-3">
         <?php 
-        $low_stock = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM inventory WHERE quantity < 5"));
+        $low_stock = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM inventory WHERE quantity <= min_threshold"));
+
         ?>
         <div class="stat-card">
              <div class="d-flex justify-content-between align-items-center">

@@ -5,16 +5,27 @@ include("includes/topbar.php");
 
 $msg="";
 if(isset($_POST['save'])){
-    $name = $_POST['name'];
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
     $price = $_POST['price'];
+    $inventory_id = $_POST['inventory_id'];
+    $qty_req = $_POST['quantity_required'];
 
     // Upload image
     $img = $_FILES['image']['name'];
     $tmp = $_FILES['image']['tmp_name'];
-    move_uploaded_file($tmp,"../assets/images/".$img);
+    $target = "assets/images/".basename($img);
+    // Note: In real app, check for errors, file types etc. 
+    // Fix path: admin uses ../assets
+    move_uploaded_file($tmp,"../".$target);
 
-    mysqli_query($conn,"INSERT INTO menu (name,price,image) VALUES ('$name','$price','assets/images/$img')");
-    $msg = "Menu item added successfully!";
+    $sql = "INSERT INTO menu (name, price, image, inventory_id, quantity_required) 
+            VALUES ('$name', '$price', '$target', " . ($inventory_id ? "'$inventory_id'" : "NULL") . ", '$qty_req')";
+    
+    if(mysqli_query($conn, $sql)){
+        $msg = "Menu item added successfully!";
+    } else {
+        $msg = "Error: " . mysqli_error($conn);
+    }
 }
 ?>
 
@@ -47,7 +58,28 @@ if(isset($_POST['save'])){
                 <div class="mb-4">
                     <label class="form-label fw-bold text-muted small">DISH IMAGE</label>
                     <input type="file" name="image" class="form-control" required>
-                    <div class="form-text">Recommended size: 500x500px</div>
+                </div>
+
+                <!-- NEW: Inventory Link -->
+                <div class="card bg-light border-0 p-3 mb-4">
+                    <h6 class="fw-bold text-muted mb-3"><i class="fas fa-boxes me-1"></i> Inventory Link (Optional)</h6>
+                    <div class="mb-3">
+                        <label class="form-label small">LINK TO INVENTORY ITEM</label>
+                        <select name="inventory_id" class="form-select">
+                            <option value="">-- No Link --</option>
+                            <?php 
+                            $inv = mysqli_query($conn, "SELECT * FROM inventory ORDER BY item_name ASC");
+                            while($i = mysqli_fetch_assoc($inv)){
+                                echo "<option value='".$i['id']."'>".$i['item_name']." (Stock: ".$i['quantity']." ".$i['unit'].")</option>";
+                            }
+                            ?>
+                        </select>
+                        <div class="form-text">If linked, ordering this item will deduct stock automatically.</div>
+                    </div>
+                    <div>
+                        <label class="form-label small">QUANTITY TO DEDUCT</label>
+                        <input type="number" name="quantity_required" class="form-control" value="1" min="1">
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2">
