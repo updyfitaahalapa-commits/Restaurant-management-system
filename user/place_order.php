@@ -62,40 +62,50 @@ if (isset($_POST['place_order'])) {
         exit();
     }
 
-    // INVENTORY CHECK (NEW LOGIC)
-    foreach ($_SESSION['cart'] as $item) {
+    // INVENTORY CHECK (AGGREGATED)
+    $inventory_usage = [];
+    $item_map = []; // To store menu details to avoid re-querying
+
+    foreach ($_SESSION['cart'] as $key => $item) {
         $name = mysqli_real_escape_string($conn, $item['item_name']);
         $cart_qty = $item['qty'];
-        
-        // Find menu details
+
         $menu_q = mysqli_query($conn, "SELECT id, inventory_id, quantity_required FROM menu WHERE name='$name'");
         if(mysqli_num_rows($menu_q) > 0){
             $menu_row = mysqli_fetch_assoc($menu_q);
             $inv_id = $menu_row['inventory_id'];
-            $qty_req_per_unit = $menu_row['quantity_required'] ? $menu_row['quantity_required'] : 1;
+            $qty_req = $menu_row['quantity_required'] ? $menu_row['quantity_required'] : 1;
             
-            // Only check if linked to inventory
-            if($inv_id){
-                $inv_q = mysqli_query($conn, "SELECT quantity, item_name FROM inventory WHERE id='$inv_id'");
-                if(mysqli_num_rows($inv_q) > 0){
-                    $inv_row = mysqli_fetch_assoc($inv_q);
-                    $stock = $inv_row['quantity'];
-                    $total_needed = $cart_qty * $qty_req_per_unit;
+            // Store for later use
+            $item_map[$name] = ['inv_id' => $inv_id, 'qty_req' => $qty_req];
 
-                    if($stock < $total_needed){
-                        $_SESSION['msg'] = "Insufficient stock for " . $item['item_name'] . ". Only " . floor($stock / $qty_req_per_unit) . " available.";
-                        $_SESSION['msg_type'] = "error";
-                        header("Location: checkout.php");
-                        exit();
-                    }
-                } else {
-                    // Linked inventory item deleted?
-                    $_SESSION['msg'] = "Inventory error for " . $item['item_name'];
-                    $_SESSION['msg_type'] = "error";
-                    header("Location: checkout.php");
-                    exit();
+            if($inv_id){
+                if(!isset($inventory_usage[$inv_id])) {
+                    $inventory_usage[$inv_id] = 0;
                 }
+                $inventory_usage[$inv_id] += ($cart_qty * $qty_req);
             }
+        }
+    }
+
+    // Verify Stock Availability
+    foreach ($inventory_usage as $inv_id => $total_needed) {
+        $inv_q = mysqli_query($conn, "SELECT quantity, item_name FROM inventory WHERE id='$inv_id'");
+        if(mysqli_num_rows($inv_q) > 0){
+            $inv_row = mysqli_fetch_assoc($inv_q);
+            $stock = $inv_row['quantity'];
+
+            if($stock < $total_needed){
+                $_SESSION['msg'] = "Insufficient stock for " . $inv_row['item_name'] . ". Required: $total_needed, Available: $stock";
+                $_SESSION['msg_type'] = "error";
+                header("Location: checkout.php");
+                exit();
+            }
+        } else {
+             $_SESSION['msg'] = "Linked inventory item (ID: $inv_id) not found.";
+             $_SESSION['msg_type'] = "error";
+             header("Location: checkout.php");
+             exit();
         }
     }
 
@@ -116,6 +126,10 @@ if (isset($_POST['place_order'])) {
         $item_summary_str .= " + " . (count($items_summary) - 2) . " more";
     }
 
+    // START TRANSACTION
+    mysqli_begin_transaction($conn);
+    $transaction_error = false;
+
     // Insert into Orders
     $sql = "INSERT INTO orders (customer, user_id, item, quantity, total, status, payment_method, payment_status, payment_phone, order_date) 
             VALUES ('$username', '$user_id', '$item_summary_str', '$total_qty', '$grand_total', 'Pending', '$payment_method', '$payment_status', '$payment_phone', NOW())";
@@ -130,37 +144,57 @@ if (isset($_POST['place_order'])) {
             $qty = $cart_item['qty'];
             
             // 1. Insert Order Item
-            mysqli_query($conn, "INSERT INTO order_items (order_id, item_name, price, quantity) 
+            $res_item = mysqli_query($conn, "INSERT INTO order_items (order_id, item_name, price, quantity) 
                                  VALUES ('$order_id', '$name', '$price', '$qty')");
+            if(!$res_item) $transaction_error = true;
                                  
-            // 2. Reduce Inventory (NEW LOGIC)
-            $menu_q = mysqli_query($conn, "SELECT inventory_id, quantity_required FROM menu WHERE name='$name'");
-            if(mysqli_num_rows($menu_q) > 0){
-                $menu_row = mysqli_fetch_assoc($menu_q);
-                $inv_id = $menu_row['inventory_id'];
-                $qty_req_per_unit = $menu_row['quantity_required'] ? $menu_row['quantity_required'] : 1;
+            // 2. Reduce Inventory
+            if(isset($item_map[$name]) && $item_map[$name]['inv_id']){
+                $inv_id = $item_map[$name]['inv_id'];
+                $deduct = $qty * $item_map[$name]['qty_req'];
                 
-                if($inv_id){
-                    $deduct = $qty * $qty_req_per_unit;
-                    mysqli_query($conn, "UPDATE inventory SET quantity = quantity - $deduct WHERE id='$inv_id'");
+                // Atomic update ensuring no negative stock (extra safety)
+                $res_inv = mysqli_query($conn, "UPDATE inventory SET quantity = quantity - $deduct WHERE id='$inv_id' AND quantity >= $deduct");
+                
+                // If update failed (likely mostly due to race condition if check passed), flag error
+                if(mysqli_affected_rows($conn) == 0){
+                    $transaction_error = true; // Rollback if stock vanished
                 }
             }
         }
         
-        // Insert Payment Record
-        // If 'Paid' automatically (Mobile), set status Paid. Else Pending.
-        $pay_status_rec = ($payment_status == 'Paid') ? 'Paid' : 'Pending';
-        mysqli_query($conn, "INSERT INTO payments (order_id, amount, payment_method, status, transaction_date) 
-                             VALUES ('$order_id', '$grand_total', '$payment_method', '$pay_status_rec', NOW())");
-
-        // Clear Cart
-        unset($_SESSION['cart']);
-        $_SESSION['msg'] = "Order placed successfully! " . ($payment_status == 'Paid' ? "Payment received." : "Payment pending.");
-        $_SESSION['msg_type'] = "success";
-        header("Location: orders.php");
-        exit();
+        if(!$transaction_error){
+            // Insert Payment Record
+            $pay_status_rec = ($payment_status == 'Paid') ? 'Paid' : 'Pending';
+            $res_pay = mysqli_query($conn, "INSERT INTO payments (order_id, amount, payment_method, status, transaction_date) 
+                                 VALUES ('$order_id', '$grand_total', '$payment_method', '$pay_status_rec', NOW())");
+            
+            if($res_pay){
+                mysqli_commit($conn);
+                
+                // Clear Cart
+                unset($_SESSION['cart']);
+                $_SESSION['msg'] = "Order placed successfully! " . ($payment_status == 'Paid' ? "Payment received." : "Payment pending.");
+                $_SESSION['msg_type'] = "success";
+                header("Location: orders.php");
+                exit();
+            } else {
+                 mysqli_rollback($conn);
+                 $_SESSION['msg'] = "Error recording payment. Please try again.";
+                 $_SESSION['msg_type'] = "error";
+                 header("Location: checkout.php");
+                 exit();
+            }
+        } else {
+            mysqli_rollback($conn);
+            $_SESSION['msg'] = "Stock update failed (Item became unavailable). Please try again.";
+            $_SESSION['msg_type'] = "error";
+            header("Location: checkout.php");
+            exit();
+        }
 
     } else {
+        mysqli_rollback($conn);
         $_SESSION['msg'] = "Error placing order: " . mysqli_error($conn);
         $_SESSION['msg_type'] = "error";
         header("Location: checkout.php");
