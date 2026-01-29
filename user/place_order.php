@@ -57,6 +57,7 @@ if (isset($_POST['place_order'])) {
          $payment_status = 'Unpaid';
     }
 
+
     if (empty($_SESSION['cart'])) {
         header("Location: index.php");
         exit();
@@ -174,6 +175,8 @@ if (isset($_POST['place_order'])) {
                 
                 // Clear Cart
                 unset($_SESSION['cart']);
+
+
                 $_SESSION['msg'] = "Order placed successfully! " . ($payment_status == 'Paid' ? "Payment received." : "Payment pending.");
                 $_SESSION['msg_type'] = "success";
                 header("Location: orders.php");

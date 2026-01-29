@@ -2,9 +2,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap');
 
 :root {
-    --primary-color: #D32F2F; /* Rich Red */
-    --secondary-color: #1A1A1A; /* Dark Charcoal */
-    --accent-color: #FFD700; /* Gold */
+    --primary-color: #D32F2F;
+    /* Rich Red */
+    --secondary-color: #1A1A1A;
+    /* Dark Charcoal */
+    --accent-color: #FFD700;
+    /* Gold */
     --text-light: #F8F9FA;
     --text-dark: #333333;
     --glass-bg: rgba(255, 255, 255, 0.1);
@@ -21,7 +24,13 @@ body {
     overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6, .navbar-brand {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar-brand {
     font-family: 'Playfair Display', serif;
 }
 
@@ -30,7 +39,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     background: rgba(26, 26, 26, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 15px 0;
     transition: all 0.3s ease;
 }
@@ -78,7 +87,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .hero {
     min-height: 100vh;
     background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-                url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop");
+        url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -95,7 +104,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     font-weight: 700;
     margin-bottom: 20px;
     letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero p {
@@ -122,7 +131,8 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .btn-main:hover {
     background-color: transparent;
     border-color: var(--primary-color);
-    color: var(--primary-color) !important; /* Force color on hover */
+    color: var(--primary-color) !important;
+    /* Force color on hover */
 }
 
 .btn-outline-light {
@@ -134,7 +144,8 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     letter-spacing: 1px;
     margin-left: 15px;
 }
-.btn-outline-light:hover{
+
+.btn-outline-light:hover {
     background: var(--text-light);
     color: var(--secondary-color);
 }
@@ -175,15 +186,15 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border-radius: 20px;
     padding: 40px 30px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     transition: all 0.4s ease;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     height: 100%;
 }
 
 .feature-card:hover {
     transform: translateY(-15px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
@@ -254,8 +265,8 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 
 /* AUTH PAGES (Login/Register) */
 .auth-body {
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                url("https://images.unsplash.com/photo-1550966871-3ed3c6227b3c?q=80&w=2070&auto=format&fit=crop");
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url("https://images.unsplash.com/photo-1550966871-3ed3c6227b3c?q=80&w=2070&auto=format&fit=crop");
     background-size: cover;
     background-position: center;
     min-height: 100vh;
@@ -270,7 +281,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     border-radius: 20px;
     padding: 40px;
     box-shadow: var(--card-shadow);
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     width: 100%;
     max-width: 500px;
 }
@@ -322,6 +333,7 @@ footer {
     .hero h1 {
         font-size: 2.5rem;
     }
+
     .hero {
         clip-path: none;
     }

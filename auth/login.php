@@ -20,6 +20,7 @@ if (isset($_POST['login'])) {
 
             // Session set garee
             $_SESSION['user'] = $user['username'];
+            $_SESSION['user_id'] = $user['id']; // Added user_id
             $_SESSION['role'] = $user['role'];
 
             // Redirect ku saleysan role
