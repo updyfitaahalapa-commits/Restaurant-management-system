@@ -61,6 +61,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
 
+        <li class="<?= ($current_page == 'customers.php') ? 'active' : ''; ?>">
+            <a href="customers.php">
+                <i class="fas fa-user-friends"></i> Customers
+            </a>
+        </li>
+
         <li class="<?= ($current_page == 'fix_images_tool.php') ? 'active' : ''; ?>">
             <a href="fix_images_tool.php">
                 <i class="fas fa-images"></i> Fix Images

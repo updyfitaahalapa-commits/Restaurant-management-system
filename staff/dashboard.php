@@ -31,7 +31,7 @@ $orders = mysqli_query($conn, "SELECT * FROM orders ORDER BY order_date DESC");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard | Gourmet Haven</title>
+    <title>Staff Dashboard | Kaama Liito</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -47,7 +47,7 @@ $orders = mysqli_query($conn, "SELECT * FROM orders ORDER BY order_date DESC");
     <!-- SIDEBAR -->
     <nav id="sidebar">
         <div class="sidebar-header">
-            <h4 class="fw-bold mb-0">GOURMET<span style="color:#f39c12">STAFF</span></h4>
+            <h4 class="fw-bold mb-0">KAAMA<span style="color:#f39c12">LIITO</span></h4>
             <small class="text-muted" style="font-size:0.7rem; letter-spacing:1px;">STAFF PANEL</small>
         </div>
 
@@ -73,9 +73,16 @@ $orders = mysqli_query($conn, "SELECT * FROM orders ORDER BY order_date DESC");
         <!-- TOPBAR -->
         <nav class="navbar navbar-expand-lg topbar mb-4">
             <div class="container-fluid">
-                <span class="navbar-brand ms-auto fw-bold text-dark">
-                    <i class="fas fa-user-circle me-2"></i> Staff: <?= $_SESSION['user']; ?>
-                </span>
+                <div class="ms-auto dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center fw-bold text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2 fs-4"></i> Staff: <?= $_SESSION['user']; ?>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        <li><a class="dropdown-item" href="profile.php"><i class="fas fa-id-card me-2"></i> My Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="../auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </nav>
 

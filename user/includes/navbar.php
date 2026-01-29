@@ -47,6 +47,8 @@
                         <i class="fas fa-user-circle me-1"></i> <?= $_SESSION['user']; ?>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="../auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
                     </ul>
                 </li>

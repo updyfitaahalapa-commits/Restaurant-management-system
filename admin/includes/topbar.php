@@ -17,7 +17,7 @@
                     <span class="fw-bold text-dark"><?= $_SESSION['user'] ?? 'Admin'; ?></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                    <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="../auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
                 </ul>
